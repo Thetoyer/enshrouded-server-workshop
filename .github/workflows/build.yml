@@ -1,0 +1,51 @@
+name: Build Windows beta
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Inno Setup
+        shell: powershell
+        run: |
+          $compiler = .\scripts\get-inno.ps1
+          "WORKSHOP_ISCC=$compiler" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Build and test
+        shell: powershell
+        run: .\scripts\build.ps1 -InnoCompiler $env:WORKSHOP_ISCC
+      - name: Test installer file deployment and uninstall
+        shell: powershell
+        run: .\scripts\test-installer.ps1 -InnoCompiler $env:WORKSHOP_ISCC
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-beta
+          path: dist/*
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-beta
+          path: dist
+      - name: Publish beta artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release already exists; leaving its explicitly uploaded assets unchanged."
+          else
+            gh release create "$TAG" dist/* --prerelease --title "Enshrouded Server Workshop $TAG" --generate-notes
+          fi
