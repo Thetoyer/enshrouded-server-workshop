@@ -1,0 +1,16 @@
+dist/
+.build/
+*.user
+*.suo
+preferences.json
+backups/
+world-backups/
+browser-profile/
+downloads/
+savegame/
+logs/
+enshrouded_server.json
+*.lnk
+*.pfx
+*.pem
+*.key
