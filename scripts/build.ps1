@@ -2,7 +2,7 @@ param([string]$WebViewPackage,[string]$InnoCompiler,[switch]$SkipInstaller)
 $ErrorActionPreference='Stop'
 Set-StrictMode -Version Latest
 $root=Split-Path $PSScriptRoot -Parent
-$version='2.4.0-beta.1'
+$version='2.5.0-beta.1'
 $build=Join-Path $root '.build'
 $dist=Join-Path $root 'dist'
 $payload=Join-Path $build 'payload'
@@ -22,10 +22,10 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 Copy-Item -LiteralPath (Join-Path $sdk 'lib\net462\Microsoft.Web.WebView2.Core.dll'),(Join-Path $sdk 'lib\net462\Microsoft.Web.WebView2.WinForms.dll'),(Join-Path $sdk 'runtimes\win-x64\native\WebView2Loader.dll') -Destination $payload
 Copy-Item -LiteralPath (Join-Path $sdk 'LICENSE.txt') -Destination (Join-Path $payload 'WebView2-LICENSE.txt')
 Copy-Item -LiteralPath (Join-Path $sdk 'NOTICE.txt') -Destination (Join-Path $payload 'WebView2-NOTICE.txt')
-Copy-Item -LiteralPath (Join-Path $root 'assets\Workshop.ico'),(Join-Path $root 'README.md'),(Join-Path $root 'LICENSE') -Destination $payload
+Copy-Item -LiteralPath (Join-Path $root 'assets\Workshop.ico'),(Join-Path $root 'README.md'),(Join-Path $root 'LICENSE'),(Join-Path $root 'LAN-TRANSFERS.md') -Destination $payload
 $compiler=Join-Path $env:WINDIR 'Microsoft.NET\Framework64\v4.0.30319\csc.exe'
 $exe=Join-Path $payload 'Enshrouded Workshop.exe'
-& $compiler /nologo /target:winexe /platform:x64 /optimize+ "/out:$exe" "/win32icon:$root\assets\Workshop.ico" "/win32manifest:$root\src\app.manifest" /r:System.Windows.Forms.dll /r:System.Drawing.dll /r:System.Web.Extensions.dll /r:System.IO.Compression.dll /r:System.IO.Compression.FileSystem.dll "/r:$payload\Microsoft.Web.WebView2.Core.dll" "/r:$payload\Microsoft.Web.WebView2.WinForms.dll" "$root\src\Workshop.cs" "$root\src\NexusBrowser.cs" "$root\src\ServerCatalog.cs" "$root\src\AssemblyInfo.cs"
+& $compiler /nologo /target:winexe /platform:x64 /optimize+ "/out:$exe" "/win32icon:$root\assets\Workshop.ico" "/win32manifest:$root\src\app.manifest" /r:System.Windows.Forms.dll /r:System.Drawing.dll /r:System.Web.Extensions.dll /r:System.IO.Compression.dll /r:System.IO.Compression.FileSystem.dll "/r:$payload\Microsoft.Web.WebView2.Core.dll" "/r:$payload\Microsoft.Web.WebView2.WinForms.dll" "$root\src\Workshop.cs" "$root\src\NexusBrowser.cs" "$root\src\ServerCatalog.cs" "$root\src\AssemblyInfo.cs" "$root\src\WorldTransfer.cs" "$root\src\LanTests.cs"
 if($LASTEXITCODE -ne 0){throw 'C# compilation failed'}
 [IO.File]::WriteAllText(($exe+'.config'),'<?xml version="1.0"?><configuration><startup><supportedRuntime version="v4.0" sku=".NETFramework,Version=v4.8" /></startup></configuration>')
 $previousData=$env:ENSHROUDED_WORKSHOP_DATA_DIR
@@ -35,6 +35,10 @@ try{
     $process=Start-Process -FilePath $exe -ArgumentList ('/selftest "'+$report+'"') -Wait -PassThru
     Get-Content -LiteralPath $report
     if($process.ExitCode -ne 0 -or !(Select-String -LiteralPath $report -SimpleMatch 'ALL TESTS PASSED' -Quiet)){throw 'Tests failed'}
+    $lanReport=Join-Path $build 'lan-test-results.txt'
+    $lanProcess=Start-Process -FilePath $exe -ArgumentList ('/lantest "'+$lanReport+'"') -Wait -PassThru
+    Get-Content -LiteralPath $lanReport
+    if($lanProcess.ExitCode -ne 0 -or !(Select-String -LiteralPath $lanReport -SimpleMatch 'ALL LAN TESTS PASSED' -Quiet)){throw 'LAN tests failed'}
 }finally{$env:ENSHROUDED_WORKSHOP_DATA_DIR=$previousData}
 $zip=Join-Path $dist "Enshrouded-Server-Workshop-$version-portable-win-x64.zip"
 [IO.Compression.ZipFile]::CreateFromDirectory($payload,$zip)
@@ -45,3 +49,7 @@ if(!$SkipInstaller){
     if($LASTEXITCODE -ne 0){throw 'Installer compilation failed'}
 }
 Get-ChildItem -LiteralPath $dist -File | Where-Object {$_.Name -ne 'SHA256SUMS.txt'} | ForEach-Object { '{0}  {1}' -f (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant(),$_.Name } | Set-Content -LiteralPath (Join-Path $dist 'SHA256SUMS.txt') -Encoding ASCII
+
+
+
+
