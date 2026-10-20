@@ -2,13 +2,15 @@
 
 A free, open-source Windows desktop manager for an existing Enshrouded dedicated server. Edit settings with labeled controls, manage player roles, keep configuration backups, and browse a small catalog of author-documented server-only mods.
 
-**Public beta: 2.4.0-beta.1.** This is a community tool, unaffiliated with Keen Games, Steam, or Nexus Mods. AI-assisted development; review the source and back up your world before testing mods.
+**Public beta: 2.5.0-beta.1.** This is a community tool, unaffiliated with Keen Games, Steam, or Nexus Mods. AI-assisted development; review the source and back up your world before testing mods.
 
 ## Install
 
 1. Open this repository's **Releases** page.
-2. Download `Enshrouded-Server-Workshop-2.4.0-beta.1-Setup-win-x64.exe`.
+2. Download `Enshrouded-Server-Workshop-2.5.0-beta.1-Setup-win-x64.exe`.
 3. Run the installer. It installs for your Windows account and can create a desktop shortcut. You can uninstall it through Windows Installed Apps.
+For LAN transfers on a gaming PC, go directly to **World transfers**; a server installation is not required there.
+
 4. Install **Enshrouded Dedicated Server** from Steam's Tools library and run it once so it creates `enshrouded_server.json`.
 5. Open Workshop. It looks for Steam libraries automatically. Use **Choose folder** if needed.
 
@@ -42,7 +44,7 @@ The built-in Nexus browser opens listed mod pages. Use **Manual Download** and t
 
 Settings, backups, world-backup ZIPs, downloaded packages, and the embedded browser profile live in `%LOCALAPPDATA%\EnshroudedServerWorkshop`. They are **not** included in the source repository or releases. Backups and the Advanced JSON view can contain server join passwords. Browser profile files can contain Nexus sign-in cookies; do not share them.
 
-No telemetry is implemented. Network requests occur for EML release lookup/download, user-requested ZIP downloads, and the Nexus pages you open. Nexus serves its own page content and third-party resources. The browser does not expose local application commands to webpages.
+No telemetry is implemented. Network requests occur for EML release lookup/download, user-requested ZIP downloads, and the Nexus pages you open. Opt-in LAN world transfers use a temporary receiver on TCP 15648, a fresh pairing key, encrypted authenticated packets, and destination approval. Nexus serves its own page content and third-party resources. The browser does not expose local application commands to webpages.
 
 Workshop does not modify firewall rules, router settings, game files automatically on launch, or Steam update settings. If Windows denies writing to a protected server folder, choose a server folder you can manage or explicitly run Workshop as administrator. It does not request elevation automatically.
 
@@ -73,3 +75,7 @@ GitHub Actions builds and attaches beta artifacts on version tags. GUI checks ha
 - [Inno Setup](https://jrsoftware.org/), used to build the installer
 
 Application source is MIT-licensed. Game, loader, and mod files are not bundled. Third-party libraries retain their own licenses.
+
+## LAN transfers (2.5 beta)
+See [LAN-TRANSFERS.md](LAN-TRANSFERS.md) for paired, encrypted world transfers between two PCs. Requires Enshrouded 1.0 world files.
+
